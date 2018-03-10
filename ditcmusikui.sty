@@ -1,0 +1,239 @@
+%
+% This is file 'ditcmusikui.sty'.
+%
+
+%% package declaration
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ditcmusikui}[2018/02/11 v0.1]
+\def\tczmk@pkgname{ditcmusikui}
+
+%--------------------------------------- general
+
+%% unique tokens
+\def\tczmk@end{\tczmk@end@}
+
+%% variables
+\newdimen\tczmk@width
+\newdimen\tczmk@halfwidth
+\newdimen\tczmk@height
+\newdimen\tczmk@depth
+\newdimen\tczmk@hgap
+\newdimen\tczmk@vgap
+\newdimen\tczmk@rule
+\newif\iftczmk@g@box@used
+\newif\iftczmk@graphicx
+\newbox\tczmk@product
+  \newbox\musi@ookisa
+\newbox\tczmk@whole
+\newbox\tczmk@boxa
+\newbox\tczmk@boxb
+\let\tczmk@cell@proc\relax
+
+%% switch 'tczmk@graphicx'
+\AtBeginDocument{%
+  \@ifpackageloaded{graphicx}{\tczmk@graphicxtrue}{}}
+
+%% \tczmk@foreach@cell\CS{...&...&...}
+\def\tczmk@foreach@cell#1#2{%
+  \def\tczmk@cell@proc{#1}%
+  \let\tczmk@next\tczmk@foreach@cell@a
+  \tczmk@next#2&\tczmk@end&}
+\def\tczmk@foreach@cell@a#1&{%
+  \def\tczmk@tmpa{#1}\def\tczmk@tmpb{\tczmk@end}%
+  \ifx\tczmk@tmpa\tczmk@tmpb
+    \let\tczmk@next\relax
+  \else
+    \tczmk@cell@proc{#1}%
+  \fi
+  \tczmk@next}
+
+%% \tczmk@fit@width{<width>}{<text>}
+\def\tczmk@fit@width#1#2{%
+  \sbox\tczmk@boxb{#2}%
+  \ifdim\wd\tczmk@boxb>#1\relax
+    \iftczmk@graphicx
+      \resizebox{#1}{\height}{\usebox\tczmk@boxb}%
+    \else
+      \hb@xt@#1{\hss\usebox\tczmk@boxb\hss}%
+    \fi
+  \else
+    \hb@xt@#1{\hfil\usebox\tczmk@boxb\hfil}%
+  \fi}
+
+%--------------------------------------- public parameters
+
+% NOTE: These parameters are not lengths but macros.
+
+%%<*> \musiwidth
+% The width of a hole.
+\newcommand*{\musiwidth}{1.2em}
+
+%%<*> \musiheight
+% The height of a hole.
+\newcommand*{\musiheight}{0.96em}
+
+%%<*> \musidepth
+% The depth of a hole.
+\newcommand*{\musidepth}{0.24em}
+
+%%<*> \musihgap
+% The horizonal gap between holes.
+\newcommand*{\musihgap}{0.4em}
+
+%%<*> \musivgap
+% The vertical gap between holes.
+\newcommand*{\musivgap}{0.4em}
+
+%%<*> \musirule
+% The rule width.
+\newcommand*{\musirule}{0.4pt}
+
+%%<*> \musiopsymbol
+% The operator symbol.
+\newcommand*{\musiopsymbol}{$\times$}
+
+%%<)> \musiwarikakko
+\newcommand*{\musiwarikakko}{\Big)}
+
+%--------------------------------------- cells
+
+%% variables
+\newdimen\tczmk@org@rule
+\newdimen\tczmk@org@sep
+
+%% \tczmk@eaten{<text>}
+\def\tczmk@eaten#1{%
+  \tczmk@frame@box{\tczmk@fit@width{\tczmk@width}{#1}}}
+
+%% \tczmk@noneaten{<text>}
+\def\tczmk@noneaten#1{%
+  \tczmk@plain@box{\tczmk@fit@width{\tczmk@width}{#1}}}
+
+%% \tczmk@halfeaten{<textL>}{<textR>}
+\def\tczmk@halfeaten#1#2{%
+  \tczmk@frame@box{\tczmk@fit@width{\tczmk@halfwidth}{#1}}%
+  \kern-\tczmk@rule
+  \tczmk@frame@box{\tczmk@fit@width{\tczmk@halfwidth}{#2}}}
+
+%% \tczmk@halfnoneaten{<textL>}{<textR>}
+\def\tczmk@halfnoneaten#1#2{%
+  \tczmk@plain@box{\tczmk@fit@width{\tczmk@halfwidth}{#1}}%
+  \kern-\tczmk@rule
+  \tczmk@plain@box{\tczmk@fit@width{\tczmk@halfwidth}{#2}}}
+
+%% \tczmk@frame@box{<text>}
+\def\tczmk@frame@box#1{%
+  \global\tczmk@g@box@usedtrue
+  \begingroup
+    \tczmk@org@rule\fboxrule \tczmk@org@sep\fboxsep
+    \fboxrule\tczmk@rule \fboxsep\z@
+    \fbox{\fboxrule\tczmk@org@rule \fboxsep\tczmk@org@sep
+      \raisebox{\z@}[\tczmk@height][\tczmk@depth]{#1}}%
+  \endgroup}
+
+%% \tczmk@plain@box{<text>}
+\def\tczmk@plain@box#1{%
+  \global\tczmk@g@box@usedtrue
+  \leavevmode \kern\tczmk@rule
+  \raisebox{\z@}[\tczmk@height][\tczmk@depth]{#1}%
+  \kern\tczmk@rule}
+
+%--------------------------------------- entire constructino
+
+%% \tczmk@initialize
+\def\tczmk@initialize{%
+  % internal parameters
+  \setlength{\tczmk@hgap}{\musihgap}%
+  \setlength{\tczmk@vgap}{\musivgap}%
+  \setlength{\tczmk@rule}{\musirule}%
+  \setlength{\tczmk@width}{\musiwidth}%
+  \advance\tczmk@width-2\tczmk@rule
+  \tczmk@halfwidth.5\tczmk@width
+  \advance\tczmk@halfwidth-.5\tczmk@rule
+  \setlength{\tczmk@height}{\musiheight}%
+  \advance\tczmk@height-\tczmk@rule
+  \setlength{\tczmk@depth}{\musidepth}%
+  \advance\tczmk@depth-\tczmk@rule
+  \setbox\tczmk@product\box\voidb@x
+  % commands used inside musikui
+  \let\eaten\tczmk@eaten
+  \let\noneaten\tczmk@noneaten
+  \let\halfeaten\tczmk@halfeaten
+  \let\halfnoneaten\tczmk@halfnoneaten
+  \let\kake\tczmk@kake
+  \let\wari\tczmk@wari
+  \let\musi\tczmk@musi
+  \let\sen\tczmk@sen}
+
+\def\tczmk@put@cell#1{%
+  \global\tczmk@g@box@usedfalse
+  \sbox\tczmk@boxa{\ignorespaces#1\unskip}%
+  \iftczmk@g@box@used
+    \usebox\tczmk@boxa
+  \else
+    \tczmk@noneaten{\usebox\tczmk@boxa}%
+  \fi
+  \hskip\tczmk@hgap}
+
+%% \tczmk@kake{<multiplicand>}{<multiplier>}{<product>}
+\def\tczmk@kake#1#2#3{%
+  \sbox\tczmk@product{%
+    \hskip\tczmk@hgap \tczmk@foreach@cell\tczmk@put@cell{#3}}%
+  \hb@xt@\wd\tczmk@product{%
+    \hfil \tczmk@foreach@cell\tczmk@put@cell{#1}}%
+  \nointerlineskip
+  \vskip\tczmk@vgap
+  \hb@xt@\wd\tczmk@product{%
+    \hskip\tczmk@hgap
+    \hb@xt@\tczmk@width{\hss\musiopsymbol\hss}%
+    \hfil \tczmk@foreach@cell\tczmk@put@cell{#2}}%
+  \vskip\tczmk@vgap
+  \hrule\@height\tczmk@rule\@depth\z@
+  \vskip\tczmk@vgap}
+
+%% \tczmk@wari{<multiplicand>}{<multiplier>}{<product>}
+\def\tczmk@wari#1#2#3{%
+  \sbox\musi@ookisa{\musiwarikakko\hskip\tczmk@hgap \tczmk@foreach@cell\tczmk@put@cell{#1}}
+  \sbox\tczmk@product{%
+      \tczmk@foreach@cell\tczmk@put@cell{#2}\copy\musi@ookisa}%
+  \hb@xt@\wd\tczmk@product{%
+    \hfil \tczmk@foreach@cell\tczmk@put@cell{#3}}%
+  \nointerlineskip
+  \vskip\tczmk@vgap
+  \tczmk@sen
+  \copy\tczmk@product
+  \nointerlineskip}
+
+%% \tczmk@musi{<content>}{<trail-count>}
+\def\tczmk@musi#1#2{%
+  \ifvoid\tczmk@product\else
+    \hb@xt@\wd\tczmk@product{%
+      \hfil \tczmk@foreach@cell\tczmk@put@cell{#1}%
+      \advance\tczmk@width2\tczmk@rule
+      \advance\tczmk@width\tczmk@hgap
+      \hskip#2\tczmk@width}%
+    \nointerlineskip
+    \vskip\tczmk@vgap
+  \fi}
+
+%% \tczmk@sen
+\def\tczmk@sen{%
+  \hbox to\wd\tczmk@product{\hfil%
+  \vrule height \tczmk@rule width \wd\musi@ookisa}%
+  \vskip -0.7em%
+  \vskip\tczmk@vgap}
+
+
+
+%--------------------------------------- public interface
+
+%%<*> \begin{musikui}...\end{musikui}
+\newenvironment{musikui}{%
+  \tczmk@initialize
+  \setbox\tczmk@whole\vbox\bgroup}%
+ {\egroup
+  \box\tczmk@whole}
+
+%--------------------------------------- all done
+\endinput
+%% EOF
